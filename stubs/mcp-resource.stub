@@ -1,0 +1,22 @@
+<?php
+
+namespace {{ namespace }};
+
+use Ugarit\Mcp\Request;
+use Ugarit\Mcp\Response;
+use Ugarit\Mcp\Server\Attributes\Description;
+use Ugarit\Mcp\Server\Resource;
+
+#[Description('A description of what this resource contains.')]
+class {{ class }} extends Resource
+{
+    /**
+     * Handle the resource request.
+     */
+    public function handle(Request $request): Response
+    {
+        //
+
+        return Response::text('The resource content.');
+    }
+}

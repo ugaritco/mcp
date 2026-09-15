@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Fixtures;
+
+use Ugarit\Mcp\Server;
+
+class ServerWithDynamicTools extends Server
+{
+    public array $tools = [
+        //
+    ];
+
+    protected function boot(): void
+    {
+        $this->tools[] = SayHiTool::class;
+        $this->tools[] = StreamingTool::class;
+    }
+}

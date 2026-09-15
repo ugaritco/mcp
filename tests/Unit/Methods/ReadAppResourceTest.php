@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+use Heritage\Http\Request as HttpRequest;
+use Ugarit\Mcp\Request;
+use Ugarit\Mcp\Response;
+use Ugarit\Mcp\Server\AppResource;
+use Ugarit\Mcp\Server\Methods\ReadResource;
+use Ugarit\Mcp\Server\Ui\AppMeta;
+use Ugarit\Mcp\Server\Ui\Csp;
+use Ugarit\Mcp\Transport\JsonRpcRequest;
+
+it('includes _meta.ui on content items for ui resources', function (): void {
+    config(['app.url' => 'https://myapp.example.com']);
+
+    $resource = new class extends AppResource
+    {
+        public function appMeta(): AppMeta
+        {
+            return AppMeta::make()
+                ->csp(Csp::make()->connectDomains(['https://api.example.com']))
+                ->prefersBorder()
+                ->domain('sandbox.example.com');
+        }
+
+        public function handle(Request $request): Response
+        {
+            return Response::text('<html><body>Hello</body></html>');
+        }
+    };
+
+    $readResource = new ReadResource;
+    $context = $this->getServerContext([
+        'resources' => [$resource],
+    ]);
+
+    $jsonRpcRequest = new JsonRpcRequest(
+        id: 1,
+        method: 'resources/read',
+        params: ['uri' => $resource->uri()]
+    );
+
+    $result = $readResource->handle($jsonRpcRequest, $context);
+    $payload = $result->toArray()['result'];
+
+    expect($payload['contents'][0])->toHaveKey('_meta')
+        ->and($payload['contents'][0]['_meta']['ui'])->toEqual([
+            'csp' => ['connectDomains' => ['https://api.example.com']],
+            'prefersBorder' => true,
+            'domain' => 'sandbox.example.com',
+        ]);
+});
+
+it('includes auto-resolved Claude domain in _meta.ui content when no appMeta set', function (): void {
+    $currentUrl = 'https://myapp.example.com/mcp';
+    $previousRequest = app('request');
+
+    try {
+        app()->instance('request', HttpRequest::create($currentUrl, 'GET'));
+
+        $expectedDomain = str(hash('sha256', $currentUrl))
+            ->limit(32, '')
+            ->append(AppResource::CLAUDE_DOMAIN_SUFFIX)
+            ->value();
+
+        $resource = new class extends AppResource
+        {
+            public function handle(Request $request): Response
+            {
+                return Response::text('<html><body>Hello</body></html>');
+            }
+        };
+
+        $readResource = new ReadResource;
+        $context = $this->getServerContext([
+            'resources' => [$resource],
+        ]);
+
+        $jsonRpcRequest = new JsonRpcRequest(
+            id: 1,
+            method: 'resources/read',
+            params: ['uri' => $resource->uri()]
+        );
+
+        $result = $readResource->handle($jsonRpcRequest, $context);
+        $payload = $result->toArray()['result'];
+
+        expect($payload['contents'][0])->toHaveKey('_meta')
+            ->and($payload['contents'][0]['_meta']['ui'])->toEqual([
+                'domain' => $expectedDomain,
+                'prefersBorder' => true,
+            ]);
+    } finally {
+        app()->instance('request', $previousRequest);
+    }
+});
+
+it('does not include _meta.ui on content items for regular resources', function (): void {
+    $resource = $this->makeResource('regular content');
+
+    $readResource = new ReadResource;
+    $context = $this->getServerContext([
+        'resources' => [$resource],
+    ]);
+
+    $jsonRpcRequest = new JsonRpcRequest(
+        id: 1,
+        method: 'resources/read',
+        params: ['uri' => $resource->uri()]
+    );
+
+    $result = $readResource->handle($jsonRpcRequest, $context);
+    $payload = $result->toArray()['result'];
+
+    expect($payload['contents'][0])->not->toHaveKey('_meta');
+});

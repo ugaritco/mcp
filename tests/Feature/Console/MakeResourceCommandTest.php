@@ -1,0 +1,20 @@
+<?php
+
+it('can create a resource class', function (): void {
+    $response = $this->scribe('make:mcp-resource', [
+        'name' => 'TestResource',
+    ]);
+
+    $response->assertExitCode(0)->run();
+
+    $this->assertFileExists(app_path('Mcp/Resources/TestResource.php'));
+});
+
+it('may publish a custom stub', function (): void {
+    $this->scribe('vendor:publish', [
+        '--tag' => 'mcp-stubs',
+        '--force' => true,
+    ])->assertExitCode(0)->run();
+
+    $this->assertFileExists(base_path('stubs/mcp-resource.stub'));
+});

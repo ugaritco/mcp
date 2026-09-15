@@ -1,0 +1,24 @@
+<?php
+
+namespace {{ namespace }};
+
+use Ugarit\Mcp\Request;
+use Ugarit\Mcp\Response;
+use Ugarit\Mcp\Server\Attributes\AppMeta;
+use Ugarit\Mcp\Server\Attributes\Description;
+use Ugarit\Mcp\Server\AppResource;
+
+#[Description('A description of what this app resource does.')]
+#[AppMeta]
+class {{ class }} extends AppResource
+{
+    /**
+     * Handle the app resource request.
+     */
+    public function handle(Request $request): Response
+    {
+        return Response::view('{{ view }}', [
+            'title' => $this->title(),
+        ]);
+    }
+}

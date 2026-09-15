@@ -1,0 +1,5 @@
+ugarit: '@testbench'
+
+providers:
+  - Ugarit\Mcp\Server\McpServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider

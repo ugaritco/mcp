@@ -1,0 +1,111 @@
+{
+    "name": "ugarit/mcp",
+    "description": "Rapidly build MCP servers for your Ugarit applications.",
+    "keywords": [
+        "mcp",
+        "ugarit"
+    ],
+    "homepage": "https://github.com/ugarit/mcp",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/ugarit/mcp/issues",
+        "source": "https://github.com/ugarit/mcp"
+    },
+    "authors": [
+        {
+            "name": "Muath R Abu Ouda",
+            "email": "muathrabuouda@hotmail.com",
+            "role": "Vision Leader of Ugarit"
+        },
+        {
+            "name": "Taylor Otwell",
+            "email": "taylor@laravel.com",
+            "role": "Original Creator & Primary Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "heritage/container": "^1.00.00",
+        "heritage/console": "^1.00.00",
+        "heritage/contracts": "^1.00.00",
+        "heritage/http": "^1.00.00",
+        "heritage/routing": "^1.00.00",
+        "heritage/support": "^1.00.00",
+        "heritage/validation": "^1.00.00",
+        "heritage/json-schema": "^1.00.00",
+        "symfony/process": "^7.4.5|^8.0.5"
+    },
+    "require-dev": {
+        "ugarit/pint": "^1.00.00",
+        "orchestra/testbench": "^9.15|^10.8|^11.0",
+        "pestphp/pest": "^3.8.5|^4.3.2",
+        "phpstan/phpstan": "^2.1.27",
+        "rector/rector": "^2.2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ugarit\\Mcp\\": "src/",
+            "Ugarit\\Mcp\\Server\\": "src/Server/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Workbench\\App\\": "workbench/app/",
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "ugarit": {
+            "providers": [
+                "Ugarit\\Mcp\\Server\\McpServiceProvider"
+            ],
+            "aliases": {
+                "Mcp": "Ugarit\\Mcp\\Facades\\Mcp"
+            }
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "minify": "npx terser resources/js/mcp-sdk.js --compress --mangle --output resources/js/mcp-sdk.min.js",
+        "lint": [
+            "pint",
+            "rector"
+        ],
+        "test:lint": [
+            "pint --test",
+            "rector --dry-run"
+        ],
+        "test:unit": "pest --ci --coverage --min=92.5",
+        "test:types": "phpstan --no-progress",
+        "test:conformance": "bash tests/Conformance/run.sh all",
+        "test:conformance:server": "bash tests/Conformance/run.sh server",
+        "test:conformance:client": "bash tests/Conformance/run.sh client",
+        "test": [
+            "@test:lint",
+            "@test:unit",
+            "@test:types"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "version": "1.00.00"
+}
